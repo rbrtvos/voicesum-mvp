@@ -182,7 +182,7 @@ function handleFiles(files) {
 }
 
 // Audio verwerken - Versie met API
-a// Audio verwerken - Versie met API
+// Audio verwerken - Versie met API
 async function processAudio() {
   if (!selectedFile) return;
   
@@ -266,7 +266,7 @@ function fileToBase64(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
   });
-}{
+} {
   if (!selectedFile) return;
   
   // Toon verwerkingsscherm
