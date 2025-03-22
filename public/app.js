@@ -32,14 +32,12 @@ let settings = loadSettings();
 
 // Initialisatie
 function init() {
+  console.log("App initialized");
   // Instellingen laden
   updateUIFromSettings();
   
   // Event listeners instellen
   setupEventListeners();
-  
-  // Controleren op gedeelde bestanden bij opstarten
-  checkForSharedFiles();
   
   // Service Worker registreren
   registerServiceWorker();
@@ -73,9 +71,9 @@ function saveSettings() {
 
 // UI bijwerken op basis van instellingen
 function updateUIFromSettings() {
-  saveHistoryToggle.checked = settings.saveHistory;
-  defaultViewSelect.value = settings.defaultView;
-  deleteAudioToggle.checked = settings.deleteAudio;
+  if (saveHistoryToggle) saveHistoryToggle.checked = settings.saveHistory;
+  if (defaultViewSelect) defaultViewSelect.value = settings.defaultView;
+  if (deleteAudioToggle) deleteAudioToggle.checked = settings.deleteAudio;
 }
 
 // Event listeners instellen
@@ -172,7 +170,7 @@ function handleFiles(files) {
   
   // Controleer of het een audiobestand is
   if (!file.type.startsWith('audio/')) {
-    showNotification('Fout', 'Selecteer een audiobestand (.mp3, .m4a, etc.)');
+    alert('Selecteer een audiobestand (.mp3, .m4a, etc.)');
     return;
   }
   
@@ -183,7 +181,7 @@ function handleFiles(files) {
   processButton.disabled = false;
 }
 
-// Audio verwerken
+// Audio verwerken - Versie zonder API
 async function processAudio() {
   if (!selectedFile) return;
   
@@ -244,82 +242,6 @@ In een echte implementatie zou dit audiobestand worden verzonden naar OpenAI's W
     tutorialCard.classList.remove('hidden');
   }
 }
-  if (!selectedFile) return;
-  
-  // Toon verwerkingsscherm
-  uploadCard.classList.add('hidden');
-  tutorialCard.classList.add('hidden');
-  processingCard.classList.remove('hidden');
-  
-  try {
-    // Converteer audiobestand naar base64
-    const base64Audio = await fileToBase64(selectedFile);
-    
-    // Stuur naar de API
-    processingStatus.textContent = "Bezig met transcriberen...";
-    const response = await fetch('/api/process-audio', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        audio: base64Audio,
-        fileName: selectedFile.name,
-        fileType: selectedFile.type,
-        language: 'nl'
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error('API request failed');
-    }
-    
-    const result = await response.json();
-    
-    // Sla resultaten op
-    fullTranscription = result.transcription;
-    summary = result.summary;
-    
-    // Sla geschiedenis op indien ingeschakeld
-    if (settings.saveHistory) {
-      saveToHistory(fullTranscription, summary, selectedFile.name);
-    }
-    
-    // Verwijder audio indien ingeschakeld
-    if (settings.deleteAudio) {
-      selectedFile = null;
-    }
-    
-    // Toon resultaten
-    processingCard.classList.add('hidden');
-    resultCard.classList.remove('hidden');
-    
-    // Standaard weergave instellen op basis van voorkeuren
-    if (settings.defaultView === 'full') {
-      showFullTab();
-    } else {
-      showSummaryTab();
-    }
-  } catch (error) {
-    console.error('Error processing audio:', error);
-    showNotification('Fout', 'Er is een fout opgetreden bij het verwerken van het audiobestand.');
-    
-    // Terug naar uploaden
-    processingCard.classList.add('hidden');
-    uploadCard.classList.remove('hidden');
-    tutorialCard.classList.remove('hidden');
-  }
-}
-
-// Helper functie om bestand naar base64 te converteren
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-}
 
 // Toon samenvatting tab
 function showSummaryTab() {
@@ -350,7 +272,7 @@ async function copyToClipboard() {
   
   try {
     await navigator.clipboard.writeText(text);
-    showNotification('Succes', 'Tekst gekopieerd naar klembord');
+    alert('Tekst gekopieerd naar klembord');
   } catch (error) {
     console.error('Error copying to clipboard:', error);
     
@@ -365,9 +287,9 @@ async function copyToClipboard() {
     try {
       const successful = document.execCommand('copy');
       const message = successful ? 'Tekst gekopieerd naar klembord' : 'Kopiëren naar klembord mislukt';
-      showNotification(successful ? 'Succes' : 'Fout', message);
+      alert(message);
     } catch (err) {
-      showNotification('Fout', 'Kopiëren naar klembord mislukt');
+      alert('Kopiëren naar klembord mislukt');
     }
     
     document.body.removeChild(textArea);
@@ -428,11 +350,6 @@ function saveToHistory(transcription, summary, audioName) {
   }
 }
 
-// Controleer op gedeelde bestanden bij het starten
-function checkForSharedFiles() {
-  // Deze functie zou in een echte implementatie controleren op bestanden die gedeeld zijn via het deelmenu
-}
-
 // Registreer Service Worker voor PWA functionaliteit
 function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
@@ -444,72 +361,6 @@ function registerServiceWorker() {
       });
     });
   }
-}
-// Toon notificatie
-function showNotification(title, message) {
-  // Verwijder bestaande notificaties
-  const existingNotifications = document.querySelectorAll('.notification');
-  existingNotifications.forEach(notification => {
-    document.body.removeChild(notification);
-  });
-  
-  // Maak nieuwe notificatie
-  const notification = document.createElement('div');
-  notification.className = 'notification';
-  
-  notification.innerHTML = `
-    <div class="notification-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </svg>
-    </div>
-    <div class="notification-message">
-      <strong>${title}</strong>: ${message}
-    </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Verwijder na 4 seconden
-  setTimeout(() => {
-    if (document.body.contains(notification)) {
-      document.body.removeChild(notification);
-    }
-  }, 4000);
-}
-// Toon notificatie
-function showNotification(title, message) {
-  // Verwijder bestaande notificaties
-  const existingNotifications = document.querySelectorAll('.notification');
-  existingNotifications.forEach(notification => {
-    document.body.removeChild(notification);
-  });
-  
-  // Maak nieuwe notificatie
-  const notification = document.createElement('div');
-  notification.className = 'notification';
-  
-  notification.innerHTML = `
-    <div class="notification-icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-      </svg>
-    </div>
-    <div class="notification-message">
-      <strong>${title}</strong>: ${message}
-    </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Verwijder na 4 seconden
-  setTimeout(() => {
-    if (document.body.contains(notification)) {
-      document.body.removeChild(notification);
-    }
-  }, 4000);
 }
 
 // Helper functie om te wachten
