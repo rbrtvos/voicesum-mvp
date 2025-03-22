@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoiceSum - Voice Memo Converter</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#25D366">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <button class="settings-link" id="settings-button">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
+
+  <header>
+    <h1>VoiceSum</h1>
+    <p>Converteer WhatsApp voice memo's naar tekstberichten</p>
+  </header>
+  
+  <div class="card" id="upload-card">
+    <div class="card-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+      Voice Memo Uploaden
+    </div>
+    
+    <div class="drop-area" id="drop-area">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#AAAAAA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+        <line x1="12" y1="19" x2="12" y2="23"></line>
+        <line x1="8" y1="23" x2="16" y2="23"></line>
+      </svg>
+      <p>Sleep een audiobestand hierheen<br>of klik om te uploaden</p>
+      <input type="file" id="file-input" accept="audio/*" style="display: none;">
+    </div>
+    
+    <div class="file-info hidden" id="file-info">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+        <line x1="12" y1="19" x2="12" y2="23"></line>
+        <line x1="8" y1="23" x2="16" y2="23"></line>
+      </svg>
+      <span class="file-name" id="file-name">Geen bestand geselecteerd</span>
+    </div>
+    
+    <button id="process-button" disabled>
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6"></path>
+        <line x1="2" y1="20" x2="2" y2="20"></line>
+      </svg>
+      Verwerken
+    </button>
+  </div>
+  
+  <div class="card hidden" id="processing-card">
+    <div class="processing">
+      <div class="loading-spinner"></div>
+      <p>Je voice memo wordt verwerkt...</p>
+      <p id="processing-status">Bezig met transcriberen...</p>
+    </div>
+  </div>
+  
+  <div class="card hidden" id="result-card">
+    <div class="card-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 11 12 14 22 4"></polyline>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+      </svg>
+      Resultaat
+    </div>
+    
+    <div class="tab-buttons">
+      <button class="tab-button active" id="summary-tab">Samenvatting</button>
+      <button class="tab-button" id="full-tab">Volledige tekst</button>
+    </div>
+    
+    <div class="result-container">
+      <div class="result-text" id="result-text">
+        <!-- Resultaattekst wordt hier geplaatst -->
+      </div>
+      
+      <div class="action-buttons">
+        <button class="action-btn whatsapp-button" id="whatsapp-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          WhatsApp
+        </button>
+        <button class="action-btn copy-button" id="copy-button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Kopiëren
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card" id="tutorial-card">
+    <div class="card-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      Hoe het werkt
+    </div>
+    
+    <div class="info-section">
+      <div class="info-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34B7F1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      </div>
+      <p>Zo zet je voice memo's om in tekst:</p>
+    </div>
+    
+    <ol class="tutorial-steps">
+      <li>Ontvang een voice memo in WhatsApp</li>
+      <li>Houd het bericht ingedrukt en kies "Delen"</li>
+      <li>Selecteer "VoiceSum" uit het deelmenu (of deel via je browser)</li>
+      <li>De app maakt automatisch een transcriptie en samenvatting</li>
+      <li>Kopieer of deel het resultaat waar je wilt</li>
+    </ol>
+  </div>
+  
+  <div class="card hidden" id="settings-card">
+    <div class="card-title">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+      Instellingen
+    </div>
+    
+    <div class="settings-container">
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">Geschiedenis opslaan</div>
+          <div class="setting-description">Bewaar transcripties voor later gebruik</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="save-history-toggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">Standaard weergave</div>
+          <div class="setting-description">Kies wat je eerst wilt zien</div>
+        </div>
+        <select id="default-view-select">
+          <option value="summary">Samenvatting</option>
+          <option value="full">Volledige tekst</option>
+        </select>
+      </div>
+      
+      <div class="setting-item">
+        <div>
+          <div class="setting-label">Audio direct verwijderen</div>
+          <div class="setting-description">Verwijder audio na verwerking</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="delete-audio-toggle" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+    
+    <button id="back-button">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+      Terug
+    </button>
+  </div>
+  
+  <footer>
+    <p>VoiceSum - Maak WhatsApp communicatie efficiënter</p>
+  </footer>
+  
+  <script>
+    // Elementen ophalen
+    const dropArea = document.getElementById('drop-area');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
+    const fileName = document.getElementById('file-name');
+    const processButton = document.getElementById('process-button');
+    const uploadCard = document.getElementById('upload-card');
+    const processingCard = document.getElementById('processing-card');
+    const resultCard = document.getElementById('result-card');
+    const tutorialCard = document.getElementById('tutorial-card');
+    const settingsCard = document.getElementById('settings-card');
+    const processingStatus = document.getElementById('
