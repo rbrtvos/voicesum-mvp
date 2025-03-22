@@ -183,7 +183,6 @@ function handleFiles(files) {
   processButton.disabled = false;
 }
 
-// Audio verwerken
 async function processAudio() {
   if (!selectedFile) return;
   
@@ -193,21 +192,33 @@ async function processAudio() {
   processingCard.classList.remove('hidden');
   
   try {
-    // In een echte implementatie zouden we hier de audio naar een server sturen
-    // Voor het MVP simuleren we het proces
+    // Converteer audiobestand naar base64
+    const base64Audio = await fileToBase64(selectedFile);
     
-    // Transcriptie simuleren
+    // Stuur naar de API
     processingStatus.textContent = "Bezig met transcriberen...";
-    await sleep(1500);
+    const response = await fetch('/api/process-audio', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        audio: base64Audio,
+        fileName: selectedFile.name,
+        fileType: selectedFile.type,
+        language: 'nl'
+      })
+    });
     
-    // Samenvatting simuleren
-    processingStatus.textContent = "Bezig met samenvatten...";
-    await sleep(1500);
+    if (!response.ok) {
+      throw new Error('API request failed');
+    }
     
-    // Simuleer resultaten (in een echte app zou dit van de backend komen)
-    fullTranscription = "Hallo allemaal, ik wilde even laten weten dat we volgende week dinsdag om 14:00 uur een vergadering hebben over het nieuwe project. Zorg ervoor dat jullie allemaal het projectplan hebben gelezen dat ik vorige week heb rondgestuurd. We moeten ook beslissen wie de presentatie gaat geven aan het management team. Ik denk zelf aan Jan of Marieke, omdat zij het meest betrokken zijn bij de technische aspecten, maar andere suggesties zijn ook welkom. Oh, en vergeet niet om je beschikbaarheid voor juli door te geven voor de teambuilding activiteit. We moeten kiezen tussen de eerste of de laatste week van juli. Laat het me weten als je nog vragen hebt. Tot dinsdag!";
+    const result = await response.json();
     
-    summary = "• Vergadering: dinsdag 14:00 uur over het nieuwe project\n• Actie: Projectplan lezen vóór de vergadering\n• Beslissen: Wie geeft de presentatie? (Suggesties: Jan of Marieke)\n• Doorgeven: Je beschikbaarheid voor teambuilding in juli (keuze: eerste of laatste week)";
+    // Sla resultaten op
+    fullTranscription = result.transcription;
+    summary = result.summary;
     
     // Sla geschiedenis op indien ingeschakeld
     if (settings.saveHistory) {
@@ -238,6 +249,16 @@ async function processAudio() {
     uploadCard.classList.remove('hidden');
     tutorialCard.classList.remove('hidden');
   }
+}
+
+// Helper functie om bestand naar base64 te converteren
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
 }
 
 // Toon samenvatting tab
@@ -364,7 +385,39 @@ function registerServiceWorker() {
     });
   }
 }
-
+// Toon notificatie
+function showNotification(title, message) {
+  // Verwijder bestaande notificaties
+  const existingNotifications = document.querySelectorAll('.notification');
+  existingNotifications.forEach(notification => {
+    document.body.removeChild(notification);
+  });
+  
+  // Maak nieuwe notificatie
+  const notification = document.createElement('div');
+  notification.className = 'notification';
+  
+  notification.innerHTML = `
+    <div class="notification-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <div class="notification-message">
+      <strong>${title}</strong>: ${message}
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Verwijder na 4 seconden
+  setTimeout(() => {
+    if (document.body.contains(notification)) {
+      document.body.removeChild(notification);
+    }
+  }, 4000);
+}
 // Toon notificatie
 function showNotification(title, message) {
   // Verwijder bestaande notificaties
