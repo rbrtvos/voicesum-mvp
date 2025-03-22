@@ -181,8 +181,92 @@ function handleFiles(files) {
   processButton.disabled = false;
 }
 
-// Audio verwerken - Versie zonder API
+// Audio verwerken - Versie met API
+a// Audio verwerken - Versie met API
 async function processAudio() {
+  if (!selectedFile) return;
+  
+  // Toon verwerkingsscherm
+  uploadCard.classList.add('hidden');
+  tutorialCard.classList.add('hidden');
+  processingCard.classList.remove('hidden');
+  
+  try {
+    // Converteer audiobestand naar base64
+    processingStatus.textContent = "Bestand voorbereiden...";
+    const base64Audio = await fileToBase64(selectedFile);
+    
+    // Stuur naar de API
+    processingStatus.textContent = "Bezig met transcriberen...";
+    console.log("Sending audio to API...");
+    
+    const response = await fetch('/api/process-audio', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        audio: base64Audio,
+        fileName: selectedFile.name,
+        fileType: selectedFile.type,
+        language: 'nl'
+      })
+    });
+    
+    if (!response.ok) {
+      console.error("API response not OK:", response.status);
+      throw new Error('API request failed with status: ' + response.status);
+    }
+    
+    const result = await response.json();
+    console.log("API response received");
+    
+    // Sla resultaten op
+    fullTranscription = result.transcription || "Transcriptie kon niet worden gegenereerd.";
+    summary = result.summary || "Samenvatting kon niet worden gegenereerd.";
+    
+    // Sla geschiedenis op indien ingeschakeld
+    if (settings.saveHistory) {
+      saveToHistory(fullTranscription, summary, selectedFile.name);
+    }
+    
+    // Verwijder audio indien ingeschakeld
+    if (settings.deleteAudio) {
+      selectedFile = null;
+    }
+    
+    // Toon resultaten
+    processingCard.classList.add('hidden');
+    resultCard.classList.remove('hidden');
+    
+    // Standaard weergave instellen op basis van voorkeuren
+    if (settings.defaultView === 'full') {
+      showFullTab();
+    } else {
+      showSummaryTab();
+    }
+  } catch (error) {
+    console.error('Error processing audio:', error);
+    
+    // Toon foutmelding met meer details
+    alert(`Er is een fout opgetreden: ${error.message || 'Onbekende fout'}. Controleer de console voor meer details.`);
+    
+    // Terug naar uploaden
+    processingCard.classList.add('hidden');
+    uploadCard.classList.remove('hidden');
+    tutorialCard.classList.remove('hidden');
+  }
+}
+
+// Helper functie om bestand naar base64 te converteren
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}{
   if (!selectedFile) return;
   
   // Toon verwerkingsscherm
