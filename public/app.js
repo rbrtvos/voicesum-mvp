@@ -183,7 +183,67 @@ function handleFiles(files) {
   processButton.disabled = false;
 }
 
+// Audio verwerken
 async function processAudio() {
+  if (!selectedFile) return;
+  
+  // Toon verwerkingsscherm
+  uploadCard.classList.add('hidden');
+  tutorialCard.classList.add('hidden');
+  processingCard.classList.remove('hidden');
+  
+  try {
+    // Simuleer verwerking
+    processingStatus.textContent = "Bezig met transcriberen...";
+    await sleep(1500);
+    
+    processingStatus.textContent = "Bezig met samenvatten...";
+    await sleep(1500);
+    
+    // Gebruik het echte bestandsnaam en grootte voor demo
+    const realFileName = selectedFile.name || "audio";
+    const fileSize = Math.round(selectedFile.size / 1024); // KB
+    
+    fullTranscription = `Dit is een demonstratie transcriptie voor het bestand "${realFileName}" (${fileSize}KB).
+    
+De echte transcriptie zou hier verschijnen als de API volledig was geconfigureerd. Voor een werkende versie is een geldige OpenAI API key nodig in de Vercel environment variables.
+
+In een echte implementatie zou dit audiobestand worden verzonden naar OpenAI's Whisper spraakherkenning API, die het zou omzetten naar tekst.`;
+    
+    summary = `• Demonstratie voor: ${realFileName}\n• Bestandsgrootte: ${fileSize}KB\n\nDit is een voorbeeld samenvatting. De echte versie zou belangrijke punten uit het audiobestand weergeven.\n\nVoor echte transcriptie is een werkende OpenAI API configuratie nodig.`;
+    
+    // Sla geschiedenis op indien ingeschakeld
+    if (settings.saveHistory) {
+      saveToHistory(fullTranscription, summary, selectedFile.name);
+    }
+    
+    // Verwijder audio indien ingeschakeld
+    if (settings.deleteAudio) {
+      selectedFile = null;
+    }
+    
+    // Toon resultaten
+    processingCard.classList.add('hidden');
+    resultCard.classList.remove('hidden');
+    
+    // Standaard weergave instellen op basis van voorkeuren
+    if (settings.defaultView === 'full') {
+      showFullTab();
+    } else {
+      showSummaryTab();
+    }
+  } catch (error) {
+    console.error('Error processing audio:', error);
+    
+    // Toon foutmelding
+    alert('Er is een fout opgetreden bij het verwerken van het audiobestand.');
+    
+    // Terug naar uploaden
+    processingCard.classList.add('hidden');
+    uploadCard.classList.remove('hidden');
+    tutorialCard.classList.remove('hidden');
+  }
+}
   if (!selectedFile) return;
   
   // Toon verwerkingsscherm
