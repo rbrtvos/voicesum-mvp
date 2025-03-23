@@ -164,17 +164,24 @@ function handleDrop(e) {
 
 // Verwerk gekozen bestanden
 function handleFiles(files) {
-  if (files.length === 0) return;
+  console.log("handleFiles called", files);
+  if (files.length === 0) {
+    console.log("No files selected");
+    return;
+  }
   
   const file = files[0];
+  console.log("File selected:", file.name, file.type, file.size);
   
   // Controleer of het een audiobestand is
   if (!file.type.startsWith('audio/')) {
+    console.log("Not an audio file:", file.type);
     alert('Selecteer een audiobestand (.mp3, .m4a, etc.)');
     return;
   }
   
   // Toon bestandsinformatie
+  console.log("Setting selectedFile and updating UI");
   selectedFile = file;
   fileInfo.classList.remove('hidden');
   fileName.textContent = file.name;
